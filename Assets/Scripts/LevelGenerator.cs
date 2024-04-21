@@ -105,8 +105,9 @@ public class LevelGenerator : MonoBehaviour
             {
                 Vector3 position = cell.transform.position + direction.Value;
                 GameObject warning = Instantiate(_warningPrefab, position, Quaternion.identity);
+                warning.SetActive(false);
                 warning.transform.parent = cell.transform;
-                //yield return new WaitForSeconds(0.01f);
+                warning.transform.LookAt(cell.transform);
                 yield return null;
             }
         }

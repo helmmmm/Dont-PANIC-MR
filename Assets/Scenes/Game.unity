@@ -169,12 +169,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cellPrefab: {fileID: 7426255593683403579, guid: c40b372f674a8e84681556f932c63918,
     type: 3}
-  _warningPrefab: {fileID: 4941668410424309087, guid: fd4e84429f30dde46b3ac36ee65729b1,
+  _warningPrefab: {fileID: 919132149155446097, guid: 99c873192dc275743b05972fb02a3fb1,
     type: 3}
   _p1Prefab: {fileID: 5744997295258466935, guid: 5c69828cb51de9045840b3650ce07433,
     type: 3}
   _p2Prefab: {fileID: 5095018899892965574, guid: c7093b43eec7487448826d2edb64029a,
     type: 3}
+  _offset: 0.24
 --- !u!1 &323856711
 GameObject:
   m_ObjectHideFlags: 0
