@@ -1,20 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class LevelGenerator : MonoBehaviour
 {
+    // singleton
+    private static LevelGenerator _instance;
+    public static LevelGenerator Instance { get { return _instance; } }
+
     [SerializeField] private GameObject _cellPrefab;
     [SerializeField] private GameObject _warningPrefab;
     [SerializeField] private GameObject _p1Prefab;
     [SerializeField] private GameObject _p2Prefab;
-
 
     private int _gridCount = 3;
     private float _cellSize = 0.2f;
     private float _cellSpacing = 0.04f;
     private int _cellCounter = 0;
     public float _offset = 0.24f;
+
+    private void Start()
+    {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            _instance = this;
+        }
+    }
 
     public void BuildLevel()
     {
@@ -23,6 +39,8 @@ public class LevelGenerator : MonoBehaviour
 
     private IEnumerator BuildGrid()
     {
+        Cell[,,] grid = new Cell[_gridCount, _gridCount, _gridCount];
+
         // Generate a grid of cells that is _gridSize x _gridSize x _gridSize
         for (int x = 0; x < _gridCount; x++)
         {
@@ -32,13 +50,34 @@ public class LevelGenerator : MonoBehaviour
                 {   
                     Vector3 position = new Vector3((x * _cellSize + x * _cellSpacing), (y *_cellSize + y * _cellSpacing), (z * _cellSize + z * _cellSpacing));
                     Vector3 worldPos = transform.TransformPoint(position);
-                    GameObject cell = Instantiate(_cellPrefab, worldPos, Quaternion.identity);
-                    cell.transform.parent = this.transform;
+                    GameObject cellObj = Instantiate(_cellPrefab, worldPos, Quaternion.identity);
+                    cellObj.transform.parent = this.transform;
 
-                    cell.name = "Cell " + _cellCounter.ToString("D2");
+                    cellObj.name = "Cell " + _cellCounter.ToString("D2");
+
+                    Cell cell = cellObj.GetComponent<Cell>();
+                    grid[x, y, z] = cell;
 
                     _cellCounter++;
                     yield return new WaitForSeconds(0.05f);
+                }
+            }
+        }
+
+        // Set neighbors for each cell
+        for (int x = 0; x < _gridCount; x++)
+        {
+            for (int y = 0; y < _gridCount; y++)
+            {
+                for (int z = 0; z < _gridCount; z++)
+                {
+                    Cell cell = grid[x, y, z];
+                    if (x > 0) cell._neighbors["Left"] = grid[x - 1, y, z];
+                    if (x < _gridCount - 1) cell._neighbors["Right"] = grid[x + 1, y, z];
+                    if (y > 0) cell._neighbors["Down"] = grid[x, y - 1, z];
+                    if (y < _gridCount - 1) cell._neighbors["Up"] = grid[x, y + 1, z];
+                    if (z > 0) cell._neighbors["Backward"] = grid[x, y, z - 1];
+                    if (z < _gridCount - 1) cell._neighbors["Forward"] = grid[x, y, z + 1];
                 }
             }
         }
@@ -73,31 +112,11 @@ public class LevelGenerator : MonoBehaviour
                 { "Backward", new Vector3(0, 0, -_offset) }
             };
 
-            foreach (Cell neighbor in cell._neighborCells)
+            foreach (var direction in directions.Keys.ToList())
             {
-                if (neighbor.transform.position.x > cell.transform.position.x)
+                if (cell._neighbors.ContainsKey(direction))
                 {
-                    directions.Remove("Right");
-                }
-                if (neighbor.transform.position.x < cell.transform.position.x)
-                {
-                    directions.Remove("Left");
-                }
-                if (neighbor.transform.position.y > cell.transform.position.y)
-                {
-                    directions.Remove("Up");
-                }
-                if (neighbor.transform.position.y < cell.transform.position.y)
-                {
-                    directions.Remove("Down");
-                }
-                if (neighbor.transform.position.z > cell.transform.position.z)
-                {
-                    directions.Remove("Forward");
-                }
-                if (neighbor.transform.position.z < cell.transform.position.z)
-                {
-                    directions.Remove("Backward");
+                    directions.Remove(direction);
                 }
             }
             
@@ -122,5 +141,11 @@ public class LevelGenerator : MonoBehaviour
 
         GameObject p1 = Instantiate(_p1Prefab, p1Space.transform.position, Quaternion.identity);
         GameObject p2 = Instantiate(_p2Prefab, p2Space.transform.position, Quaternion.identity);
+    }
+
+    // Return all cells in the grid
+    public List<Cell> GetAllCells()
+    {
+        return GetCells();
     }
 }

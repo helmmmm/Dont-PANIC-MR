@@ -18,6 +18,7 @@ public class StateMachine
 
     public void TryChangeState(State newState)
     {
+        Debug.Log("Changing state to: " + newState.GetName() + "\n");
         _currentState.TryStateTransition(newState);
     }
 

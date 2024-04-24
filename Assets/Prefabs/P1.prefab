@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4904346602548233890}
   - component: {fileID: 5041268856214936611}
   - component: {fileID: 544541491298318347}
+  - component: {fileID: -463948794030777714}
   m_Layer: 0
   m_Name: P1
   m_TagString: Player
@@ -119,7 +120,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e664d3c5f813eb41a98223ce292b087, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isPlayer1: 1
+  _isPlayer1: 1
+  _movable: 0
+--- !u!54 &-463948794030777714
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5744997295258466935}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 2
 --- !u!1 &7569484641455672965
 GameObject:
   m_ObjectHideFlags: 0

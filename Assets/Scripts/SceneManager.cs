@@ -6,12 +6,19 @@ using UnityEngine.SceneManagement;
 public class SceneManager : MonoBehaviour
 {
     // Singleton
-    public static SceneManager Instance;
+    private static SceneManager _instance;
+    public static SceneManager Instance { get { return _instance; } }
 
     private void Awake()
     {
-        Instance = this;
-        DontDestroyOnLoad(this.gameObject);
+        if (_instance != null && _instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            _instance = this;
+        }
     }
 
     // Change to game scene

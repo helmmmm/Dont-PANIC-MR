@@ -5,13 +5,38 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public bool isPlayer1;
+    public bool _isPlayer1;
+    public bool _movable;
     private LevelGenerator _levelGenerator;
+    Game_SM _gameSM => Game_SM.Instance;
     private Cell _currentCell;
+
+    private float[] lastInputTime = new float[6];
+    private float _minInputDelay = 0.1f;
 
     private void Start()
     {
-        _levelGenerator = GameObject.Find("Level Space").GetComponent<LevelGenerator>();
+        _levelGenerator = GameObject.Find("Cells").GetComponent<LevelGenerator>();
+    }
+
+    private void OnEnable()
+    {
+        _movable = false;
+        _gameSM.GameState_PreGame.OnEnter += DisableMovement;
+        _gameSM.GameState_PreRound.OnEnter += DisableMovement;
+        _gameSM.GameState_MidRound.OnEnter += EnableMovement;
+        _gameSM.GameState_PostRound.OnEnter += DisableMovement;
+        _gameSM.GameState_Pause.OnEnter += DisableMovement;
+    }
+
+    private void EnableMovement()
+    {
+        _movable = true;
+    }
+
+    private void DisableMovement()
+    {
+        _movable = false;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -29,7 +54,11 @@ public class Player : MonoBehaviour
         // if any button pressed
         if (Input.anyKeyDown)
         {
-            if (isPlayer1)
+            if (Time.realtimeSinceStartup - lastInputTime[0] < _minInputDelay) return;
+            if (!_movable) return;
+            lastInputTime[0] = Time.realtimeSinceStartup;
+
+            if (_isPlayer1)
             {
                 if (Input.GetKeyDown(KeyCode.W)) moveDirection = Vector3.forward;
                 if (Input.GetKeyDown(KeyCode.S)) moveDirection = Vector3.back;
@@ -59,16 +88,60 @@ public class Player : MonoBehaviour
 
     private bool IsCellOpenAt (Vector3 destination)
     {
-        Vector3 currentPos = transform.position;
-        RaycastHit hit;
-        if (Physics.Raycast(currentPos, destination - currentPos, out hit, 1f))
+        Cell cell = GetCellAt(destination);
+        if (cell == null || cell.IsOccupied)
         {
-            if (hit.collider.CompareTag("Cell"))
+            return false;
+        }
+
+        float distance = Vector3.Distance(destination, cell.transform.position);
+        float threshold = 0.1f;
+        if (distance < threshold)
+        {
+            return true;
+        }
+
+        return false;
+        //destination = new Vector3(Mathf.Round(destination.x), Mathf.Round(destination.y), Mathf.Round(destination.z));
+
+        //Vector3 currentPos = transform.position;
+        //RaycastHit hit;
+        //if (Physics.Raycast(currentPos, destination - currentPos, out hit, 1f))
+        //{
+        //    if (hit.collider.CompareTag("Cell"))
+        //    {
+        //        return !hit.collider.GetComponent<Cell>().IsOccupied;
+        //    }
+        //}
+        
+        //return false;
+    }
+
+    private Cell GetCellAt(Vector3 position)
+    {
+        position = new Vector3(Mathf.Round(position.x * 100) / 100.0f, 
+                                Mathf.Round(position.y * 100) / 100.0f,
+                                Mathf.Round(position.z * 100) / 100.0f);
+        var allCells = _levelGenerator.GetAllCells();
+        foreach (Cell cell in allCells)
+        {
+            Vector3 cellPos = new Vector3(Mathf.Round(cell.transform.position.x * 100) / 100.0f, 
+                                            Mathf.Round(cell.transform.position.y * 100) / 100.0f,
+                                            Mathf.Round(cell.transform.position.z * 100) / 100.0f);
+            if (cellPos == position)
             {
-                return !hit.collider.GetComponent<Cell>().IsOccupied;
+                return cell;
             }
         }
-        
-        return false;
+        return null;
+    }
+
+    private void OnDisable()
+    {
+        _gameSM.GameState_PreGame.OnEnter -= DisableMovement;
+        _gameSM.GameState_PreRound.OnEnter -= DisableMovement;
+        _gameSM.GameState_MidRound.OnEnter -= EnableMovement;
+        _gameSM.GameState_PostRound.OnEnter -= DisableMovement;
+        _gameSM.GameState_Pause.OnEnter -= DisableMovement;
     }
 }
