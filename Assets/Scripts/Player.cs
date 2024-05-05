@@ -14,6 +14,8 @@ public class Player : MonoBehaviour
     private float[] lastInputTime = new float[6];
     private float _minInputDelay = 0.1f;
 
+    [SerializeField] LayerMask _layerMask;
+
     private void Start()
     {
         _levelGenerator = GameObject.Find("Cells").GetComponent<LevelGenerator>();
@@ -88,52 +90,18 @@ public class Player : MonoBehaviour
 
     private bool IsCellOpenAt (Vector3 destination)
     {
-        Cell cell = GetCellAt(destination);
-        if (cell == null || cell.IsOccupied)
-        {
-            return false;
-        }
+        Vector3 currentPos = transform.position;
+        RaycastHit hit;
 
-        float distance = Vector3.Distance(destination, cell.transform.position);
-        float threshold = 0.1f;
-        if (distance < threshold)
+        if (Physics.Raycast(currentPos, destination - currentPos, out hit, 1f, _layerMask, QueryTriggerInteraction.Ignore))
         {
-            return true;
+            if (hit.collider.gameObject.CompareTag("Cell"))
+            {
+                return !hit.collider.GetComponent<Cell>().IsOccupied;
+            }
         }
 
         return false;
-        //destination = new Vector3(Mathf.Round(destination.x), Mathf.Round(destination.y), Mathf.Round(destination.z));
-
-        //Vector3 currentPos = transform.position;
-        //RaycastHit hit;
-        //if (Physics.Raycast(currentPos, destination - currentPos, out hit, 1f))
-        //{
-        //    if (hit.collider.CompareTag("Cell"))
-        //    {
-        //        return !hit.collider.GetComponent<Cell>().IsOccupied;
-        //    }
-        //}
-        
-        //return false;
-    }
-
-    private Cell GetCellAt(Vector3 position)
-    {
-        position = new Vector3(Mathf.Round(position.x * 100) / 100.0f, 
-                                Mathf.Round(position.y * 100) / 100.0f,
-                                Mathf.Round(position.z * 100) / 100.0f);
-        var allCells = _levelGenerator.GetAllCells();
-        foreach (Cell cell in allCells)
-        {
-            Vector3 cellPos = new Vector3(Mathf.Round(cell.transform.position.x * 100) / 100.0f, 
-                                            Mathf.Round(cell.transform.position.y * 100) / 100.0f,
-                                            Mathf.Round(cell.transform.position.z * 100) / 100.0f);
-            if (cellPos == position)
-            {
-                return cell;
-            }
-        }
-        return null;
     }
 
     private void OnDisable()

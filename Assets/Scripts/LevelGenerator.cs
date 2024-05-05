@@ -20,6 +20,8 @@ public class LevelGenerator : MonoBehaviour
     private int _cellCounter = 0;
     public float _offset = 0.24f;
 
+    private List<Cell> _allCells = new List<Cell>();
+
     private void Start()
     {
         if (_instance != null && _instance != this)
@@ -98,9 +100,9 @@ public class LevelGenerator : MonoBehaviour
 
     private IEnumerator BuildWarnings()
     {
-        var cells = GetCells();
+        _allCells = GetCells();
         
-        foreach (Cell cell in cells)
+        foreach (Cell cell in _allCells)
         {
             Dictionary<string, Vector3> directions = new Dictionary<string, Vector3>
             {
@@ -124,11 +126,12 @@ public class LevelGenerator : MonoBehaviour
             {
                 Vector3 position = cell.transform.position + direction.Value;
                 GameObject warning = Instantiate(_warningPrefab, position, Quaternion.identity);
-                warning.SetActive(false);
+                //warning.SetActive(false);
                 warning.transform.parent = cell.transform;
                 warning.transform.LookAt(cell.transform);
                 yield return null;
             }
+
         }
 
         BuildPlayers();
@@ -148,4 +151,6 @@ public class LevelGenerator : MonoBehaviour
     {
         return GetCells();
     }
+
+
 }

@@ -12,17 +12,7 @@ public class Cell : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            if (other != this)
-                IsOccupied = true;
-            else return;
-            //Debug.Log($"Occupied on Cell: {gameObject.name} \n");
-        }
-            
-        if (other.CompareTag("ContactRod"))
-        {
-            IsDanger = true;
-            DangerManager.Instance._dangerCellCount++;
-            //Debug.Log($"Danger on Cell: {gameObject.name} \n");
+            IsOccupied = true;
         }
     }
 
@@ -30,7 +20,5 @@ public class Cell : MonoBehaviour
     {
         if (other.CompareTag("Player"))
             IsOccupied = false;
-        if (other.CompareTag("ContactRod"))
-            IsDanger = false;
     }
 }

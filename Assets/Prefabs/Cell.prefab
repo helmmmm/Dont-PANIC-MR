@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5784984865971270586}
   - component: {fileID: 5240836478045027758}
   - component: {fileID: 1620699290493259660}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cell
   m_TagString: Cell
   m_Icon: {fileID: 0}
@@ -167,4 +167,4 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0

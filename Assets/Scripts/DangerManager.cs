@@ -7,9 +7,8 @@ public class DangerManager : MonoBehaviour
     public static DangerManager Instance;
     private RoundManager _roundManager;
 
-    public bool _rodsOverlapping;
-
     private List<GameObject> _randomWarnings = new List<GameObject>();
+    private List<Cell> _dangerCells = new List<Cell>();
     private List<Cell> _allCells = new List<Cell>();
     private List<GameObject> _allWarnings = new List<GameObject>();
 
@@ -42,6 +41,7 @@ public class DangerManager : MonoBehaviour
         {
             Instance = this;
         }
+
         _roundManager = FindObjectOfType<RoundManager>();
     }
 
@@ -62,28 +62,38 @@ public class DangerManager : MonoBehaviour
 
         do
         {
-            _rodsOverlapping = false;
             _dangerCellCount = 0;
             _randomWarnings = GetRandomWarnings(dangerCount, _allCells);
-            ActivateRods(_randomWarnings);
+            ActivateWarnings(_randomWarnings);
         }
-        while (_allCells.Count - dangerCellCount < 2 || _rodsOverlapping);
+        while (_allCells.Count - dangerCellCount < 2);
     }
 
     private void DisplayWarnings(List<GameObject> warnings)
     {
         foreach (GameObject warning in warnings)
         {
-            warning.transform.GetChild(0).gameObject.SetActive(false);
+            warning.transform.GetChild(0).gameObject.SetActive(true);
         }
     }
 
-    private void ActivateRods(List<GameObject> warnings)
+    private void ActivateWarnings(List<GameObject> warnings)
     {
         foreach (GameObject warning in warnings)
         {
             warning.SetActive(true);
+            // access affected cells and make them IsDanger
+            foreach (GameObject cell in warning.GetComponent<Warning>()._cellsAffected)
+            {
+                if (!_dangerCells.Contains(cell.GetComponent<Cell>()))
+                {
+                    _dangerCells.Add(cell.GetComponent<Cell>());
+                    cell.GetComponent<Cell>().IsDanger = true;
+                    _dangerCellCount++;
+                }
+            }
         }
+        Debug.Log($"Number of Danger Cells: {_dangerCellCount}");
     }
 
     private int GetRound()
@@ -145,4 +155,5 @@ public class DangerManager : MonoBehaviour
             return 10;
         }
     }
+
 }
