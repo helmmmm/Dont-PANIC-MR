@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -15,10 +12,16 @@ public class Player : MonoBehaviour
     private float _minInputDelay = 0.1f;
 
     [SerializeField] LayerMask _layerMask;
+    private ParticleSystem _deathParticles;
+    private Renderer _renderer;
+    private Light _playerLight;
 
     private void Start()
     {
         _levelGenerator = GameObject.Find("Cells").GetComponent<LevelGenerator>();
+        _deathParticles = GetComponentInChildren<ParticleSystem>();
+        _renderer = GetComponent<Renderer>();
+        _playerLight = GetComponentInChildren<Light>();
     }
 
     private void OnEnable()
@@ -28,6 +31,7 @@ public class Player : MonoBehaviour
         _gameSM.GameState_PreRound.OnEnter += DisableMovement;
         _gameSM.GameState_MidRound.OnEnter += EnableMovement;
         _gameSM.GameState_PostRound.OnEnter += DisableMovement;
+        _gameSM.GameState_GameOver.OnEnter += DisableMovement;
         _gameSM.GameState_Pause.OnEnter += DisableMovement;
     }
 
@@ -46,6 +50,12 @@ public class Player : MonoBehaviour
         if (other.CompareTag("Cell"))
         {
             _currentCell = other.GetComponent<Cell>();
+        }
+
+        if (other.CompareTag("Laser"))
+        {
+            Debug.Log("hit!+\n");
+            DestroyPlayer();
         }
     }
 
@@ -110,6 +120,15 @@ public class Player : MonoBehaviour
         _gameSM.GameState_PreRound.OnEnter -= DisableMovement;
         _gameSM.GameState_MidRound.OnEnter -= EnableMovement;
         _gameSM.GameState_PostRound.OnEnter -= DisableMovement;
+        _gameSM.GameState_GameOver.OnEnter -= DisableMovement;
         _gameSM.GameState_Pause.OnEnter -= DisableMovement;
+    }
+
+    private void DestroyPlayer()
+    {
+        _renderer.enabled = false;
+        _playerLight.enabled = false;
+        _deathParticles.Play();
+        GameManager.Instance.IsGameOver = true;
     }
 }

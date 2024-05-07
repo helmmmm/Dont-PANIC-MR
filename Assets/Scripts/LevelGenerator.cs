@@ -20,7 +20,7 @@ public class LevelGenerator : MonoBehaviour
     private int _cellCounter = 0;
     public float _offset = 0.24f;
 
-    private List<Cell> _allCells = new List<Cell>();
+    public List<Cell> _allCells = new List<Cell>();
 
     private void Start()
     {
@@ -134,6 +134,7 @@ public class LevelGenerator : MonoBehaviour
 
         }
 
+        DangerManager.Instance.RegisterWarnings(_allCells);
         BuildPlayers();
     }
 
@@ -144,6 +145,10 @@ public class LevelGenerator : MonoBehaviour
 
         GameObject p1 = Instantiate(_p1Prefab, p1Space.transform.position, Quaternion.identity);
         GameObject p2 = Instantiate(_p2Prefab, p2Space.transform.position, Quaternion.identity);
+
+        DangerManager.Instance.RegisterPlayers(p1, p2);
+
+        GameUIManager.Instance.GameUIManager_PreGame();
     }
 
     // Return all cells in the grid

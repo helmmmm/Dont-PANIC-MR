@@ -12,22 +12,24 @@ public class DangerManager : MonoBehaviour
     private List<Cell> _allCells = new List<Cell>();
     private List<GameObject> _allWarnings = new List<GameObject>();
 
+    private Player _player1;
+    private Player _player2;
+
     public int _dangerCellCount;
 
     public void DangerManager_PreRound()
     {
         GenerateWarnings();
-        DisplayWarnings(_randomWarnings);
     }
 
-    public void DangerManager_MidRound()
+    public void DangerManager_MidRound() 
     {
-        
+        DisplayWarnings(_randomWarnings);
     }
 
     public void DangerManager_PostRound()
     {
-        ClearWarnings();
+        DeactivateWarnings();
     }
 
 
@@ -45,14 +47,63 @@ public class DangerManager : MonoBehaviour
         _roundManager = FindObjectOfType<RoundManager>();
     }
 
-    private void ClearWarnings()
+    public void RegisterPlayers(GameObject player1, GameObject player2)
+    {
+        _player1 = player1.GetComponent<Player>();
+        _player2 = player2.GetComponent<Player>();
+    }
+
+    public void DeactivateWarnings()
     {
         foreach (GameObject warning in _randomWarnings)
         {
             warning.transform.GetChild(0).gameObject.SetActive(false);
-            warning.SetActive(false);
         }
-    }   
+    }
+
+    public void ClearRound()
+    {
+        foreach (GameObject warning in _randomWarnings)
+        {
+            warning.transform.GetChild(0).gameObject.SetActive(false);
+            _dangerCells.Clear();
+            _dangerCellCount = 0;
+        }
+    }
+
+    public void ShootLasers()
+    {
+        StartCoroutine(ActivateLasers());
+    }
+    
+    private IEnumerator ActivateLasers()
+    {
+        _player1._movable = false;
+        _player2._movable = false;
+
+        if (_randomWarnings.Count < 1)
+            yield return null;
+
+        foreach (GameObject warning in _randomWarnings)
+        {
+            warning.transform.GetChild(0).gameObject.SetActive(false);
+            warning.transform.GetChild(1).gameObject.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        foreach (GameObject warning in _randomWarnings)
+        {
+            warning.transform.GetChild(1).gameObject.SetActive(false);
+        }
+
+        yield return new WaitForSeconds(1f);
+        
+        if (!GameManager.Instance.IsGameOver)
+            Game_SM.Instance.TryChangeState(Game_SM.Instance.GameState_PostRound);
+        else
+            Game_SM.Instance.TryChangeState(Game_SM.Instance.GameState_GameOver);
+    }
 
     private void GenerateWarnings()
     {
@@ -101,8 +152,9 @@ public class DangerManager : MonoBehaviour
         return _roundManager._currentRound;
     }
 
-    private List<GameObject> GetAllWarnings(List<Cell> allCells)
+    public List<GameObject> RegisterWarnings(List<Cell> allCells)
     {
+
         foreach (Cell cell in allCells)
         {
             foreach (Transform warning in cell.transform)
@@ -115,20 +167,21 @@ public class DangerManager : MonoBehaviour
 
     private List<GameObject> GetRandomWarnings(int dangerCount, List<Cell> allCells)
     {
-        var allWarnings = GetAllWarnings(allCells);
+        var allWarningsCopy = new List<GameObject>(_allWarnings);
+        _randomWarnings.Clear();
 
         for (int i = 0; i < dangerCount; i++)
         {
-            if (allWarnings.Count == 0)
+            if (allWarningsCopy.Count == 0)
             {
                 break;
             }
 
-            var randomIndex = Random.Range(0, allWarnings.Count);
-            var randomWarning = allWarnings[randomIndex];
+            var randomIndex = Random.Range(0, allWarningsCopy.Count);
+            var randomWarning = allWarningsCopy[randomIndex];
 
             _randomWarnings.Add(randomWarning);
-            allWarnings.RemoveAt(randomIndex);
+            allWarningsCopy.RemoveAt(randomIndex);
         }
 
         return _randomWarnings;

@@ -9,7 +9,7 @@ public class Timer : MonoBehaviour
     Game_SM _gameSM => Game_SM.Instance;
     private RoundManager _roundManager;
 
-    private int _midRoundDuration = 10;
+    private int _midRoundDuration = 5;
     private int _preRoundDuration = 3;
     public int _currentPreRoundTime;
     public int _currentMidRoundTime;
@@ -70,10 +70,12 @@ public class Timer : MonoBehaviour
             else
             {
                 _timerText.text = _currentMidRoundTime.ToString();
+                yield return new WaitForSeconds(1);
             }
-            yield return new WaitForSeconds(1);
             _currentMidRoundTime--;
         }
+        DangerManager.Instance.DeactivateWarnings();
+        DangerManager.Instance.ShootLasers();
         //shoot laser
         //determine win or lose
         //if win, go to next round
