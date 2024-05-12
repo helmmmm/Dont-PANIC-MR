@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -18,14 +19,15 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        _levelGenerator = GameObject.Find("Cells").GetComponent<LevelGenerator>();
-        _deathParticles = GetComponentInChildren<ParticleSystem>();
-        _renderer = GetComponent<Renderer>();
-        _playerLight = GetComponentInChildren<Light>();
+        // Check if scene is menu scene
     }
 
     private void OnEnable()
     {
+        _levelGenerator = GameObject.Find("Cells").GetComponent<LevelGenerator>();
+        _deathParticles = GetComponentInChildren<ParticleSystem>();
+        _renderer = GetComponent<Renderer>();
+        _playerLight = GetComponentInChildren<Light>();
         _movable = false;
         _gameSM.GameState_PreGame.OnEnter += DisableMovement;
         _gameSM.GameState_PreRound.OnEnter += DisableMovement;

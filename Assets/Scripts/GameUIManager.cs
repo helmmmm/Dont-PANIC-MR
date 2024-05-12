@@ -7,6 +7,9 @@ public class GameUIManager : MonoBehaviour
     [SerializeField] GameObject _startGameButton;
     [SerializeField] GameObject _timer;
     [SerializeField] GameObject _roundText;
+
+    [SerializeField] GameObject _menuPanels;
+
     private Game_SM _gameSM => Game_SM.Instance;
 
     //singleton
@@ -16,6 +19,7 @@ public class GameUIManager : MonoBehaviour
     private void Awake()
     {
         _startGameButton.SetActive(false);
+        _menuPanels.SetActive(true);
     }
 
     private void Start()
@@ -50,6 +54,12 @@ public class GameUIManager : MonoBehaviour
     public void GameUIManager_PostRound() 
     {
     
+    }
+
+    public void OnGamePhase()
+    {
+        _menuPanels.SetActive(false);
+        _gameSM.Initialize();
     }
 
     public void OnStartButton()

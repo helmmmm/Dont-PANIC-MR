@@ -18,7 +18,6 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        _gameSM.Initialize();
         if (Instance == null)
         {
             Instance = this;
