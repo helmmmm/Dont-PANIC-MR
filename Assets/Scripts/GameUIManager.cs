@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameUIManager : MonoBehaviour
+public class GameUIManager : NetworkBehaviour
 {
-    [SerializeField] GameObject _startGameButton;
     [SerializeField] GameObject _timer;
     [SerializeField] GameObject _roundText;
 
@@ -18,7 +18,6 @@ public class GameUIManager : MonoBehaviour
 
     private void Awake()
     {
-        _startGameButton.SetActive(false);
         _menuPanels.SetActive(true);
     }
 
@@ -34,16 +33,11 @@ public class GameUIManager : MonoBehaviour
         }
     }
 
-    public void GameUIManager_PreGame()
-    {
-        _startGameButton.SetActive(true);
-    }
 
     public void GameUIManager_PreRound()
     {
         _timer.SetActive(true);
         _roundText.SetActive(true);
-        _startGameButton.SetActive(false);
     }
 
     public void GameUIManager_MidRound()
@@ -56,10 +50,18 @@ public class GameUIManager : MonoBehaviour
     
     }
 
-    public void OnGamePhase()
+    [ServerRpc]
+    public void OnGamePhaseServerRpc()
     {
+        OnGamePhaseClientRpc();
         _menuPanels.SetActive(false);
         _gameSM.Initialize();
+    }
+
+    [ClientRpc]
+    public void OnGamePhaseClientRpc()
+    {
+        _menuPanels.SetActive(false);
     }
 
     public void OnStartButton()

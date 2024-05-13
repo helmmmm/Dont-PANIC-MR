@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
-public class LevelGenerator : MonoBehaviour
+public class LevelGenerator : NetworkBehaviour
 {
     // singleton
     private static LevelGenerator _instance;
@@ -19,8 +20,11 @@ public class LevelGenerator : MonoBehaviour
     private float _cellSpacing = 0.04f;
     private int _cellCounter = 0;
     public float _offset = 0.24f;
+    public float LevelDepth => _cellSize * _gridCount + _cellSpacing * (_gridCount - 1);
 
     public List<Cell> _allCells = new List<Cell>();
+
+    private Transform _levelSpaceGroup;
 
     private void Start()
     {
@@ -32,27 +36,38 @@ public class LevelGenerator : MonoBehaviour
         {
             _instance = this;
         }
+
+        _levelSpaceGroup = this.transform.parent;
+        float levelDepth = LevelGenerator.Instance.LevelDepth;
+        _levelSpaceGroup.transform.position = Camera.main.transform.position + new Vector3(-levelDepth / 2, 1f, levelDepth / 2 + 0.5f);
     }
 
     public void BuildLevel()
     {
         StartCoroutine(BuildGrid());
     }
+    
 
     private IEnumerator BuildGrid()
     {
+        yield return new WaitForSeconds(0.5f); // Delays to simulate loading, adjust as needed
         Cell[,,] grid = new Cell[_gridCount, _gridCount, _gridCount];
 
-        // Generate a grid of cells that is _gridSize x _gridSize x _gridSize
+        // Generate a grid of cells that is _gridCount x _gridCount x _gridCount
         for (int x = 0; x < _gridCount; x++)
         {
             for (int y = 0; y < _gridCount; y++)
             {
                 for (int z = 0; z < _gridCount; z++)
                 {   
-                    Vector3 position = new Vector3((x * _cellSize + x * _cellSpacing), (y *_cellSize + y * _cellSpacing), (z * _cellSize + z * _cellSpacing));
+                    Vector3 position = new Vector3(
+                        (x * _cellSize + x * _cellSpacing), 
+                        (y * _cellSize + y * _cellSpacing), 
+                        (z * _cellSize + z * _cellSpacing)
+                    );
                     Vector3 worldPos = transform.TransformPoint(position);
-                    GameObject cellObj = Instantiate(_cellPrefab, worldPos, Quaternion.identity);
+
+                    GameObject cellObj = InstantiateNetworked(_cellPrefab, worldPos, Quaternion.identity);
                     cellObj.transform.parent = this.transform;
 
                     cellObj.name = "Cell " + _cellCounter.ToString("D2");
@@ -61,7 +76,7 @@ public class LevelGenerator : MonoBehaviour
                     grid[x, y, z] = cell;
 
                     _cellCounter++;
-                    yield return new WaitForSeconds(0.05f);
+                    yield return new WaitForSeconds(0.05f); // Delays to simulate loading, adjust as needed
                 }
             }
         }
@@ -87,6 +102,7 @@ public class LevelGenerator : MonoBehaviour
         StartCoroutine(BuildWarnings());
     }
 
+
     private List<Cell> GetCells()
     {
         var cells = new List<Cell>();
@@ -101,6 +117,11 @@ public class LevelGenerator : MonoBehaviour
     private IEnumerator BuildWarnings()
     {
         _allCells = GetCells();
+
+        if (!NetworkManager.Singleton.IsServer) // Ensure only the server performs the network spawn
+        {
+            yield break;
+        }
         
         foreach (Cell cell in _allCells)
         {
@@ -114,6 +135,7 @@ public class LevelGenerator : MonoBehaviour
                 { "Backward", new Vector3(0, 0, -_offset) }
             };
 
+            // Remove any directions where there are neighboring cells to avoid placing unnecessary warnings.
             foreach (var direction in directions.Keys.ToList())
             {
                 if (cell._neighbors.ContainsKey(direction))
@@ -121,15 +143,15 @@ public class LevelGenerator : MonoBehaviour
                     directions.Remove(direction);
                 }
             }
-            
+
+            // Instantiate warnings in the specified directions
             foreach (var direction in directions)
             {
                 Vector3 position = cell.transform.position + direction.Value;
-                GameObject warning = Instantiate(_warningPrefab, position, Quaternion.identity);
-                //warning.SetActive(false);
-                warning.transform.parent = cell.transform;
-                warning.transform.LookAt(cell.transform);
-                yield return null;
+                GameObject warning = InstantiateNetworked(_warningPrefab, position, Quaternion.identity);
+                warning.transform.SetParent(cell.transform);
+                warning.transform.LookAt(cell.transform.position);
+                yield return null; // Yield return null to effectively space out the instantiation over frames.
             }
 
         }
@@ -143,12 +165,13 @@ public class LevelGenerator : MonoBehaviour
         GameObject p1Space = gameObject.transform.GetChild(12).gameObject;
         GameObject p2Space = gameObject.transform.GetChild(14).gameObject;
 
-        GameObject p1 = Instantiate(_p1Prefab, p1Space.transform.position, Quaternion.identity);
-        GameObject p2 = Instantiate(_p2Prefab, p2Space.transform.position, Quaternion.identity);
+        GameObject p1 = InstantiateNetworked(_p1Prefab, p1Space.transform.position, Quaternion.identity);
+        GameObject p2 = InstantiateNetworked(_p2Prefab, p2Space.transform.position, Quaternion.identity);
 
         DangerManager.Instance.RegisterPlayers(p1, p2);
 
-        GameUIManager.Instance.GameUIManager_PreGame();
+        //GameUIManager.Instance.GameUIManager_PreGame();
+        // 
     }
 
     // Return all cells in the grid
@@ -157,5 +180,18 @@ public class LevelGenerator : MonoBehaviour
         return GetCells();
     }
 
-
+    private GameObject InstantiateNetworked(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        GameObject obj = Instantiate(prefab, position, rotation);
+        NetworkObject netObj = obj.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Spawn();
+        }
+        else
+        {
+            Debug.LogError("The prefab does not have a NetworkObject component.");
+        }
+        return obj;
+    }
 }

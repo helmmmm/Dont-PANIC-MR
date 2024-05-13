@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 using System;
+using Oculus.Platform;
 
 public class NetworkManagerUI : MonoBehaviour
 {
@@ -60,6 +61,7 @@ public class NetworkManagerUI : MonoBehaviour
             startGameButton.interactable = true;
             p2StatusText.text = "P2 joined!";
             p2StatusText.color = new Color32(135, 16, 26, 255);
+            //Core.AsyncInitialize(); 
         }
     }
 
@@ -111,6 +113,7 @@ public class NetworkManagerUI : MonoBehaviour
         {
             Debug.LogError(e.Message);
         }
+        Core.AsyncInitialize();
     }
 
     public void EnableClientPanel()

@@ -19,7 +19,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        // Check if scene is menu scene
+        // Check if scene is menu scene 
     }
 
     private void OnEnable()

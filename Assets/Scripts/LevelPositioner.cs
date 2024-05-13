@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class LevelPositioner : MonoBehaviour
+public class LevelPositioner : NetworkBehaviour
 {
     public void PositionLevel()
     {
